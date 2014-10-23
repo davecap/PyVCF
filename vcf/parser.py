@@ -395,8 +395,14 @@ class Reader(object):
                 val = True
             elif entry_type in ('String', 'Character'):
                 try:
-                    vals = entry[1].split(',') # commas are reserved characters indicating multiple values
-                    val = self._map(str, vals)
+                    # support quoted strings (test if string is quoted)
+                    if entry[1][0]+entry[1][-1] in ['""', "''"]:
+                        val = [entry[1]]
+                    else:
+                        # commas are reserved characters indicating
+                        # multiple values
+                        vals = entry[1].split(',')
+                        val = self._map(str, vals)
                 except IndexError:
                     entry_type = 'Flag'
                     val = True
@@ -634,7 +640,9 @@ class Writer(object):
     counts = dict((v,k) for k,v in field_counts.iteritems())
 
     def __init__(self, stream, template, lineterminator="\n"):
-        self.writer = csv.writer(stream, delimiter="\t", lineterminator=lineterminator)
+        self.writer = csv.writer(stream, delimiter="\t",
+                                 lineterminator=lineterminator,
+                                 quotechar='', quoting=csv.QUOTE_NONE)
         self.template = template
         self.stream = stream
 
